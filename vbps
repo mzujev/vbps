@@ -1,0 +1,61 @@
+#!/bin/bash
+
+PARAMS=( )
+
+help ()
+{
+	HELP=true
+	echo -e "$(basename $0) - backend for xbps/xtools collection of utilities"
+	echo -e "usage:\n\t$(basename $0)  [-h|--help] action  [options ...]\n" ;
+	echo -e "\t-h|--help\t- show this message and exit" ;
+	echo -e "\taction\t\t- appropriate action for xbps/xtools utility(if not set, default: query)" ;
+	echo -e "\toptions\t\t- appropriate list of options for the selected xbps/xtools utility" ;
+	echo ;
+	echo -e "\t Example:" ;
+	echo -e "\t\t$(basename $0) -vRs query locate" ;
+	echo -e "\t\t$(basename $0) install --repository /tmp/void locate" ;
+	echo -e "\t\t$(basename $0) ilog" ;
+	echo -e "\t\t$(basename $0) locate vim" ;
+	echo ;
+} >&2
+
+for P in $@;do
+	case ${P} in
+		-h|--help)
+			help
+			shift
+			;;
+		man|info)
+			man -k xbps
+			exit 0
+			;;
+		*)
+			case ${P} in
+				[a-z]*|[A-Z]*)
+					if [ ! -n "${ACTION}" ];then
+						ACTION=$(echo "${P}" | sed -e 's/\(.*\)/\L\1/')
+						shift
+					fi
+					;;
+			esac
+			PARAMS[${#PARAMS[*]}]=${1};
+			shift
+		;;
+	esac
+done
+
+ACTION=${ACTION:=query}
+
+if [ "$(which xbps-${ACTION} &>/dev/null && echo $?)" ];then
+	exec xbps-${ACTION} ${PARAMS[*]}
+else
+	if [ "$(which x${ACTION} &>/dev/null && echo $?)" ];then
+		exec x${ACTION} ${PARAMS[*]}
+	else
+		if [ -z "${HELP}" ];then
+			echo "It's looks like a xbps-${ACTION} doesn't exist"
+			exit 11
+		fi
+	fi
+fi
+
