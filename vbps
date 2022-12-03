@@ -55,7 +55,6 @@ else
 		if [ -z "${HELP}" ];then
 			#echo "It's looks like a xbps-${ACTION} doesn't exist"
 			env ACTION=query $0 $PARAMS $ACTION
-			exit 11
 		fi
 	fi
 fi
